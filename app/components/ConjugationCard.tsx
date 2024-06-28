@@ -1,46 +1,76 @@
-import { genderEmoji } from "../model/gender";
-import { Conjugation } from "../types/conjugation";
+"use client";
+import { emoji } from "../model/emoji";
+import { languageAtom } from "../state/config";
+import { useAtom } from "jotai";
+import { getLocale } from "../locale/locale";
+import _ from "lodash";
+import { caseNumber } from "../model/const";
+import { nounCases } from "../model/conjugation";
 
-export function ConjugationCard({ entry }: { entry: Conjugation }) {
+export function ConjugationCard({ word }: { word: string }) {
+  const [language] = useAtom(languageAtom);
 
-  // Mapping gender names to emojis
+  function getLocaleWithPrefix(suffix: string, lang: string = language) {
+    const prefix = `word:${word}:${suffix}`;
+    return getLocale(prefix, lang);
+  }
+
+  const gender = getLocaleWithPrefix("gender", "en");
+  const genderLocale = getLocale(gender, language);
+  const genderEmoji = emoji[gender] || "";
+  const type = getLocaleWithPrefix("type", "en");
+  const typeLocale = getLocale(type, language);
+
   return (
-    <div className="card card-bordered w-96 bg-base-100 shadow-xl m-4">
-      <div className="card-body">
-        <div className="flex flex-col w-full items-center text-center py-4 mb-4 bg-gray-100 rounded-lg shadow gap-4">
-        <div className="flex flex-row items-center text-right gap-4 w-full px-6 text-xs">
-            <p className=" font-bold uppercase">{entry.type}</p>
-            {entry.gender && (
-              <span
-                className="tooltip tooltip-right"
-                data-tip={entry.gender}
-              >
-                <span className="text-2xl" >
-                  {genderEmoji[entry.gender]}
+    <>
+      <div className="card card-bordered shadow-xl">
+        <div className="card-body">
+          <div className="flex flex-col w-full h-full items-center justify-center text-center gap-6">
+            <div className="flex flex-row items-center text-right gap-4 w-full px-6 text-xs">
+              <p className="font-bold uppercase">{typeLocale}</p>
+              {gender && (
+                <span className="tooltip tooltip-right" data-tip={genderLocale}>
+                  <span className="text-2xl">{genderEmoji}</span>
                 </span>
-              </span>
-            )}
+              )}
+            </div>
+            <p className="text-6xl pt-6">
+              {getLocaleWithPrefix("emoji", "en")}
+            </p>
+            <p className="text-3xl font-medium">
+              {getLocaleWithPrefix("nominative", "pl")}
+            </p>
+            <p>({getLocale("word:" + word, language)})</p>
           </div>
-          <p className="text-6xl">{entry.emoji}</p>
-
-          <p className="text-3xl font-medium">{entry.word}</p>
         </div>
-        {entry.data.map((item, index) => (
-          <div key={index} className="mb-4">
-            <div className="flex flex-col gap-2">
-              <div className="badge badge-primary">{item.case}</div>
-              <p className="mb-1">
-                {item.form} / {item.plural}
-              </p>
-              <p className="text-gray-600">{item.use}</p>
-              <p className="italic text-gray-500">{item.example}</p>
-              <div className="flex justify-center card-actions">
-                <span className="text-3xl">{item.emoji}</span>
+      </div>
+      {nounCases.map((caseType) => (
+        <div key={caseType}>
+          <div className="card card-bordered shadow-xl h-full">
+            <div className="flex flex-col gap-4 card-body h-full">
+              <div className="badge badge-primary flex gap-3">
+                <p>#{caseNumber[caseType]}</p>
+                <p>{getLocale(caseType, language)}</p>
               </div>
+              <div className="flex justify-center card-actions py-4">
+                <span className="text-3xl">{emoji[caseType]}</span>
+              </div>
+              <p className="mb-1 font-bold">
+                {getLocaleWithPrefix(caseType, "pl") /*todo: plural too*/}
+              </p>
+              <p className="text-gray-600">
+                {getLocale(caseType + ":description", language)}
+              </p>
+              <p className="italic text-gray-500">
+                {getLocaleWithPrefix(caseType + ":example", "pl")}
+              </p>
+              <p className="italic text-gray-500">
+                {getLocaleWithPrefix(caseType + ":example", language)}
+              </p>
             </div>
           </div>
-        ))}
-      </div>
-    </div>
+        </div>
+      ))}
+    </>
   );
 }

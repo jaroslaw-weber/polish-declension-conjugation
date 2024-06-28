@@ -1,17 +1,12 @@
-
 export interface ConjugationData {
   case: string;
   form: string;
   plural: string;
-  use: string;
-  example: string;
-  emoji: string;
 }
 export interface Conjugation {
   type: string;
   word: string;
-  emoji: string;
-  gender?: Gender;
+  gender: Gender;
   data: ConjugationData[];
 }
 
